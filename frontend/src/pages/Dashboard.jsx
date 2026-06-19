@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api, { getUsers, updateUser, deleteUser, register, updateMe } from '../services/api'
+import { listarSensores } from '../services/climaService'
+import { listarUbicaciones } from '../services/ubicacionService'
+import { getEventos, getUbicaciones } from '../components/dashboard/events/eventService'
 import toast from 'react-hot-toast'
+import Events from '../components/dashboard/events/Events'
+import Sensors from '../components/dashboard/sensors/Sensors'
+import Ubicacion from '../components/dashboard/ubicacion/Ubicacion'
 
 // --- Iconos SVG Básicos ---
 const IconDashboard = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
