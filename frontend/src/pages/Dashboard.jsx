@@ -417,7 +417,8 @@ export default function Dashboard() {
                 background: activeTab === item.id ? '#0F766E' : 'transparent',
                 color: activeTab === item.id ? 'var(--bg-card)' : 'var(--text-muted)',
                 border: 'none', borderRadius: '8px', cursor: 'pointer', textAlign: 'left',
-                transition: 'all 0.2s ease', fontWeight: '600', fontSize: '13px', textDecoration: 'none'
+                transition: 'all 0.2s ease', fontWeight: '600', fontSize: '13px', textDecoration: 'none',
+                boxSizing: 'border-box'
               }}
             >
               <div style={{ color: activeTab === item.id ? 'var(--bg-card)' : 'var(--text-muted)' }}>{item.icon}</div>
@@ -444,7 +445,8 @@ export default function Dashboard() {
                 width: '100%', display: 'flex', alignItems: 'center', gap: '16px',
                 padding: '12px 16px', border: 'none', borderRadius: '8px',
                 background: 'transparent', color: '#ef4444', fontWeight: '600',
-                fontSize: '13px', cursor: 'pointer', textAlign: 'left'
+                fontSize: '13px', cursor: 'pointer', textAlign: 'left',
+                boxSizing: 'border-box'
               }}
               onMouseOver={(e) => e.target.style.background = '#fee2e2'}
               onMouseOut={(e) => e.target.style.background = 'transparent'}
