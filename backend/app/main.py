@@ -57,6 +57,9 @@ setup_cors(app)
 # Bloquea una IP por 5 minutos (300s) si hace más de 50 peticiones en 1 minuto (60s)
 app.add_middleware(IPRateLimitMiddleware, max_requests=50, window_seconds=60, block_seconds=300)
 
+from app.core.audit_middleware import AuditMiddleware
+app.add_middleware(AuditMiddleware)
+
 # Instrumentar con Prometheus
 Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzip=True)
 
