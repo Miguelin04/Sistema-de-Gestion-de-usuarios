@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  # 1. Métricas de la Aplicación (FastAPI Usuarios)
+  - job_name: 'ms_usuarios_app'
+    static_configs:
+      - targets: ['backend:8000']
+
+  # 2. Métricas de Infraestructura AWS (cAdvisor)
+  - job_name: 'ms_usuarios_infra'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # 3. Métricas de la Aplicación (FastAPI Eventos en GCP)
+  - job_name: 'ms_eventos_app'
+    static_configs:
+      - targets: ['34.63.122.237:8000']
+
+  # 4. Métricas de Infraestructura GCP (cAdvisor en GCP - Por hacer)
+  #- job_name: 'ms_eventos_infra'
+  #  static_configs:
+  #    - targets: ['34.63.122.237:8080']
