@@ -8,7 +8,7 @@ scrape_configs:
       - targets: ['backend:8000']
 
   # 2. Métricas de Infraestructura AWS (cAdvisor)
-  - job_name: 'ms_usuarios_infra'
+  - job_name: 'cadvisor'
     static_configs:
       - targets: ['cadvisor:8080']
 
@@ -18,6 +18,6 @@ scrape_configs:
       - targets: ['35.193.173.57:8000']
 
   # 4. Métricas de Infraestructura GCP (cAdvisor en GCP)
-  - job_name: 'ms_eventos_infra'
+  - job_name: 'cadvisor'
     static_configs:
       - targets: ['35.193.173.57:8080']
