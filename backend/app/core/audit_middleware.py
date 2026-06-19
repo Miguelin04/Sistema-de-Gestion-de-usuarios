@@ -7,7 +7,7 @@ import socket
 
 # Configuración básica de Kafka
 conf = {
-    'bootstrap.servers': 'monitoreo_kafka:9092',
+    'bootstrap.servers': 'monitoreo_kafka:29092',
     'client.id': socket.gethostname()
 }
 producer = Producer(conf)
