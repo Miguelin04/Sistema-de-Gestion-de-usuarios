@@ -24,12 +24,14 @@ from google.auth.transport import requests as google_requests
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def setup_cors(app: FastAPI) -> None:
+    origins = settings.BACKEND_CORS_ORIGINS
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.BACKEND_CORS_ORIGINS,
+        allow_origins=origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["*"],
     )
 
 def verificar_clave(clave_plana: str, clave_hasheada: str) -> bool:

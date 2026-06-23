@@ -18,11 +18,13 @@ class Settings(BaseSettings):
 
     # CORS: Aquí defines QUIÉN puede conectarse a tu API
     BACKEND_CORS_ORIGINS: list[str] = [
-        "http://localhost:5173",   # Frontend-Web (Vite)
-        "http://localhost:8000",   # Kong Gateway
-        "http://localhost",        # Contenedores internos
-        "http://127.0.0.1:5173",   # Loopback
-        "*"                        # (Recuerda quitar el '*' en producción)
+        "http://localhost:5173",        # Frontend-Web (Vite dev)
+        "http://localhost:8000",        # Backend local
+        "http://localhost",             # Contenedores internos
+        "http://127.0.0.1:5173",        # Loopback
+        "http://3.21.50.248",           # Frontend AWS (puerto 80)
+        "http://3.21.50.248:8000",      # Backend AWS directo
+        "http://3.21.50.248:3000",      # Grafana AWS
     ]
 
     # Variables para la Autenticación y Base de Datos
