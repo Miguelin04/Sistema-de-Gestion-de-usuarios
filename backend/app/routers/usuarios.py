@@ -1,16 +1,56 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List, Any
+from typing import List, Any, Optional
 from app.database.session import get_db
 from app.schemas.usuario import UsuarioResponse, UsuarioUpdate, UsuarioUpdateMe
 from app.crud import crud_usuario
 from app.core.deps import get_current_admin, get_current_user
 from app.core.security import obtener_hash_clave
+from pydantic import BaseModel, EmailStr
 
 router = APIRouter(
     prefix="/usuarios",
     tags=["Gestión de Usuarios (Admin)"]
 )
+
+class AdminUsuarioCreate(BaseModel):
+    nombre: str
+    apellido: str
+    correo: EmailStr
+    clave: Optional[str] = None
+    id_rol: int = 2
+
+@router.post("/", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED)
+def crear_usuario_admin(
+    usuario_in: AdminUsuarioCreate,
+    db: Session = Depends(get_db),
+    admin_user = Depends(get_current_admin)
+) -> Any:
+    """
+    Crea un usuario directamente desde el panel de administración.
+    No requiere verificación de correo. El usuario queda activo de inmediato.
+    """
+    if crud_usuario.obtener_usuario_por_correo(db, correo=usuario_in.correo):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ya existe un usuario registrado con ese correo."
+        )
+    if usuario_in.id_rol not in [1, 2, 3]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El rol debe ser 1 (Administrador), 2 (Participante) o 3 (Superadmin)."
+        )
+
+    from app.schemas.usuario import UsuarioCreate
+    usuario_data = UsuarioCreate(
+        nombre=usuario_in.nombre,
+        apellido=usuario_in.apellido,
+        correo=usuario_in.correo,
+        clave=usuario_in.clave,
+        id_rol=usuario_in.id_rol
+    )
+    nuevo = crud_usuario.crear_usuario(db, usuario=usuario_data, verificado=True)
+    return nuevo
 
 @router.put("/me", response_model=UsuarioResponse)
 def actualizar_mi_perfil(

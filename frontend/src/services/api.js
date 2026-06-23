@@ -36,6 +36,7 @@ export const reenviarVerificacion = (payload) => api.post('/auth/reenviar-verifi
 
 // Endpoints de Gestión de Usuarios (Requieren Rol Administrador)
 export const getUsers = () => api.get('/usuarios/')
+export const createUser = (payload) => api.post('/usuarios/', payload)
 export const updateUser = (id, payload) => api.put(`/usuarios/${id}`, payload)
 export const deleteUser = (id) => api.delete(`/usuarios/${id}`)
 

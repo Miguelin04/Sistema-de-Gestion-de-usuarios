@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api, { getUsers, updateUser, deleteUser, register, updateMe } from '../services/api'
+import api, { getUsers, createUser, updateUser, deleteUser, register, updateMe } from '../services/api'
 import { listarSensores } from '../services/climaService'
 import { listarUbicaciones } from '../services/ubicacionService'
 import { getEventos, getUbicaciones } from '../components/dashboard/events/eventService'
@@ -302,10 +302,10 @@ export default function Dashboard() {
           nombre: formData.nombre,
           apellido: formData.apellido,
           correo: formData.correo.trim().toLowerCase(),
-          clave: formData.clave,
+          clave: formData.clave || null,
           id_rol: Number(formData.id_rol)
         }
-        await register(payload) // Usamos el endpoint de registro existente
+        await createUser(payload) // Endpoint admin: crea el usuario directamente sin verificación
         await fetchUsuarios() // Recargamos lista completa
         addNotification('success', 'REGISTRO EXITOSO', `El usuario ${payload.nombre} fue creado correctamente.`)
       } else {

@@ -48,8 +48,6 @@ class UsuarioCreate(UsuarioBase):
     def validar_correo_unl(cls, v: str) -> str:
         if not v.endswith('@unl.edu.ec'):
             raise ValueError('El correo debe pertenecer al dominio institucional @unl.edu.ec')
-        if not re.match(r'^[a-zA-Z0-9_.-]+\.[a-zA-Z0-9_.-]+@unl\.edu\.ec$', v):
-            raise ValueError('El correo debe tener el formato nombre.apellido@unl.edu.ec')
         return v
 
     @field_validator('id_rol')
