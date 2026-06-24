@@ -57,6 +57,9 @@ class Settings(BaseSettings):
     MAIL_STARTTLS: bool = True
     MAIL_SSL_TLS: bool = False
 
+    # Configuración de Kafka
+    KAFKA_BOOTSTRAP_SERVERS: str = "kafka:9092"
+
     class Config:
         # Pydantic buscará el archivo .env en la raíz donde se ejecuta el contenedor
         env_file = ".env"

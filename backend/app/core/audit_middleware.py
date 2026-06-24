@@ -4,10 +4,11 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from confluent_kafka import Producer
 import socket
+from app.core.config import settings
 
 # Configuración básica de Kafka
 conf = {
-    'bootstrap.servers': 'monitoreo_kafka:29092',
+    'bootstrap.servers': settings.KAFKA_BOOTSTRAP_SERVERS,
     'client.id': socket.gethostname()
 }
 producer = Producer(conf)
