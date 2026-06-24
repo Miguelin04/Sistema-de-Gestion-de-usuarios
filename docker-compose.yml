@@ -99,6 +99,9 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/datasources/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - ./grafana/provisioning/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./grafana/provisioning/dashboards/files/dashboard_auditoria_grafana.json:/etc/grafana/provisioning/dashboards/files/dashboard_auditoria_grafana.json
     depends_on:
       - prometheus
     restart: always

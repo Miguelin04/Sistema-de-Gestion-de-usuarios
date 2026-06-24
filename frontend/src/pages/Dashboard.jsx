@@ -248,7 +248,7 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    if (activeTab === 'Auditoria') {
+    if (activeTab === 'Auditoria' || activeTab === 'Usuarios') {
       fetchAuditoriaLogs()
     }
   }, [activeTab, filtroUsuario, filtroCategoria, filtroEntidad])
@@ -875,78 +875,265 @@ export default function Dashboard() {
 
           {/* MAIN CONTENT AREA - CONDITIONAL RENDERING BASED ON TAB */}
           {activeTab === 'Usuarios' && (isAdmin || isSuperAdmin) && (
-            <div style={{ background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid #DBE3E0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', overflow: 'hidden' }}>
-              <div style={{ padding: '24px', borderBottom: '1px solid #DBE3E0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', fontStyle: 'italic' }}>DIRECTORIO DE USUARIOS UNL</h3>
-                  <p style={{ margin: 0, fontSize: '12px', fontWeight: '600', color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Control de Accesos y Privilegios</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              
+              {/* CARD DE USUARIOS */}
+              <div style={{ background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid #DBE3E0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', overflow: 'hidden' }}>
+                <div style={{ padding: '24px', borderBottom: '1px solid #DBE3E0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', fontStyle: 'italic' }}>DIRECTORIO DE USUARIOS UNL</h3>
+                    <p style={{ margin: 0, fontSize: '12px', fontWeight: '600', color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Control de Accesos y Privilegios</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button onClick={openCreateModal} style={{ padding: '8px 16px', background: '#0F766E', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600', color: 'var(--bg-card)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <IconAdd /> Agregar Usuario
+                    </button>
+                    <button onClick={() => { fetchUsuarios(); addNotification('info', 'ACTUALIZANDO DATOS', 'Obteniendo la lista más reciente de usuarios.'); }} style={{ padding: '8px 16px', background: 'var(--bg-app)', border: '1px solid #DBE3E0', borderRadius: '6px', fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                      {loadingUsers ? '...' : 'Recargar'}
+                    </button>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button onClick={openCreateModal} style={{ padding: '8px 16px', background: '#0F766E', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600', color: 'var(--bg-card)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <IconAdd /> Agregar Usuario
-                  </button>
-                  <button onClick={() => { fetchUsuarios(); addNotification('info', 'ACTUALIZANDO DATOS', 'Obteniendo la lista más reciente de usuarios.'); }} style={{ padding: '8px 16px', background: 'var(--bg-app)', border: '1px solid #DBE3E0', borderRadius: '6px', fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                    {loadingUsers ? '...' : 'Recargar'}
-                  </button>
+
+                {errorMsg ? (
+                  <div style={{ padding: '40px', textAlign: 'center', color: '#ef4444' }}>{errorMsg}</div>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ background: 'var(--bg-app)', borderBottom: '1px solid #DBE3E0' }}>
+                          <th style={{ padding: '16px 24px', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>USUARIO</th>
+                          <th style={{ padding: '16px 24px', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>CORREO INSTITUCIONAL</th>
+                          <th style={{ padding: '16px 24px', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>ROL ASIGNADO</th>
+                          <th style={{ padding: '16px 24px', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.5px', textAlign: 'right' }}>ACCIONES</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {usuarios.map((u, index) => (
+                          <tr key={u.id_usuario} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                            <td style={{ padding: '16px 24px' }}>
+                              <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)' }}>{u.nombre} {u.apellido}</div>
+                            </td>
+                            <td style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>{u.correo}</td>
+                            <td style={{ padding: '16px 24px' }}>
+                              <span style={{
+                                padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px',
+                                background: u.id_rol === 1 ? '#fee2e2' : u.id_rol === 3 ? '#fef3c7' : '#e0e7ff',
+                                color: u.id_rol === 1 ? '#ef4444' : u.id_rol === 3 ? '#d97706' : '#4338ca'
+                              }}>
+                                {u.id_rol === 1 ? 'ADMINISTRADOR' : u.id_rol === 3 ? 'SUPERADMIN' : 'PARTICIPANTE'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                <button
+                                  onClick={() => openEditModal(u)}
+                                  style={{ padding: '6px', background: '#e0f2fe', border: 'none', borderRadius: '4px', color: '#0284c7', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                                  title="Editar Usuario"
+                                >
+                                  <IconEdit />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteUser(u.id_usuario)}
+                                  style={{ padding: '6px', background: '#fee2e2', border: 'none', borderRadius: '4px', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                                  title="Eliminar Usuario"
+                                >
+                                  <IconDelete />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {usuarios.length === 0 && !loadingUsers && (
+                          <tr><td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No se encontraron usuarios</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* CARD DE AUDITORÍA */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                
+                {/* Encabezado */}
+                <div style={{ background: 'var(--bg-card)', padding: '32px', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ width: '48px', height: '48px', background: 'rgba(15, 118, 110, 0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F766E' }}>
+                      <IconClock />
+                    </div>
+                    <div>
+                      <h2 style={{ margin: '0 0 4px 0', fontSize: '22px', fontWeight: '800', color: 'var(--text-main)' }}>Auditoría de Eventos en Tiempo Real</h2>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>
+                        Seguimiento de accesos, inicios de sesión y mutaciones de datos auditadas a través de Apache Kafka y guardadas en la base de datos.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contadores / KPIs */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                  <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                    <span style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Eventos Auditados</span>
+                    <div style={{ fontSize: '28px', fontWeight: '900', color: '#0F766E', marginTop: '6px' }}>{auditoriaLogs.length}</div>
+                  </div>
+                  <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                    <span style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Inicios de Sesión</span>
+                    <div style={{ fontSize: '28px', fontWeight: '900', color: '#10b981', marginTop: '6px' }}>
+                      {auditoriaLogs.filter(log => log.accion === 'Inicio de Sesión').length}
+                    </div>
+                  </div>
+                  <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                    <span style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Registros Nuevos</span>
+                    <div style={{ fontSize: '28px', fontWeight: '900', color: '#3b82f6', marginTop: '6px' }}>
+                      {auditoriaLogs.filter(log => log.accion === 'Registro').length}
+                    </div>
+                  </div>
+                  <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                    <span style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Fallas / Alertas</span>
+                    <div style={{ fontSize: '28px', fontWeight: '900', color: '#ef4444', marginTop: '6px' }}>
+                      {auditoriaLogs.filter(log => log.resultado.includes('401') || log.resultado.includes('403') || log.resultado.includes('Fallo')).length}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Barra de Filtros */}
+                <div style={{ background: 'var(--bg-card)', padding: '20px 24px', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <div style={{ flex: 1, minWidth: '200px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Usuario (Correo)</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej: usuario@unl.edu.ec" 
+                      value={filtroUsuario}
+                      onChange={e => setFiltroUsuario(e.target.value)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '13px', background: 'var(--bg-app)', color: 'var(--text-main)', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div style={{ width: '180px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Categoría</label>
+                    <select 
+                      value={filtroCategoria}
+                      onChange={e => setFiltroCategoria(e.target.value)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '13px', background: 'var(--bg-app)', color: 'var(--text-main)', boxSizing: 'border-box' }}
+                    >
+                      <option value="">Todas</option>
+                      <option value="Autenticación">Autenticación</option>
+                      <option value="Gestión de Usuarios">Gestión de Usuarios</option>
+                    </select>
+                  </div>
+                  <div style={{ width: '180px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Entidad</label>
+                    <select 
+                      value={filtroEntidad}
+                      onChange={e => setFiltroEntidad(e.target.value)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '13px', background: 'var(--bg-app)', color: 'var(--text-main)', boxSizing: 'border-box' }}
+                    >
+                      <option value="">Todas</option>
+                      <option value="Sesión">Sesión</option>
+                      <option value="Registro">Registro</option>
+                      <option value="Usuario">Usuario</option>
+                    </select>
+                  </div>
+                  <div style={{ alignSelf: 'flex-end' }}>
+                    <button 
+                      onClick={() => { setFiltroUsuario(''); setFiltroCategoria(''); setFiltroEntidad(''); }} 
+                      style={{ padding: '10px 16px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '13px', fontWeight: '700', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}
+                    >
+                      Limpiar Filtros
+                    </button>
+                  </div>
+                  <div style={{ alignSelf: 'flex-end', marginLeft: 'auto' }}>
+                    <button 
+                      onClick={fetchAuditoriaLogs} 
+                      disabled={loadingAuditoria}
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '6px', border: 'none', fontSize: '13px', fontWeight: '700', background: '#0F766E', color: 'white', cursor: 'pointer', opacity: loadingAuditoria ? 0.7 : 1 }}
+                    >
+                      {loadingAuditoria ? 'Cargando...' : 'Actualizar'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tabla de Logs */}
+                <div style={{ background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                  {loadingAuditoria && auditoriaLogs.length === 0 ? (
+                    <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)', fontWeight: '600' }}>Cargando logs de auditoría...</div>
+                  ) : auditoriaLogs.length === 0 ? (
+                    <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)', fontWeight: '600' }}>No se encontraron registros de auditoría que coincidan con los filtros.</div>
+                  ) : (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                        <thead>
+                          <tr style={{ background: 'var(--bg-app)', borderBottom: '1px solid var(--border)' }}>
+                            <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Fecha y Hora</th>
+                            <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Usuario / Actor</th>
+                            <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Categoría</th>
+                            <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Acción</th>
+                            <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Resultado</th>
+                            <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Entidad</th>
+                            <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase', textAlign: 'right' }}>Detalle</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {auditoriaLogs.map((log) => {
+                            const dateObj = new Date(log.fecha);
+                            const fechaFormatted = dateObj.toLocaleDateString();
+                            const horaFormatted = dateObj.toLocaleTimeString();
+                            
+                            // Badge para resultado
+                            const isSuccess = log.resultado.includes('Éxito') || log.resultado.startsWith('20');
+                            const isWarning = log.resultado.includes('401') || log.resultado.includes('403');
+                            const resultColor = isSuccess ? '#10b981' : isWarning ? '#f59e0b' : '#ef4444';
+                            const resultBg = isSuccess ? 'rgba(16, 185, 129, 0.1)' : isWarning ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+
+                            // Badge para Categoría
+                            const isAuth = log.categoria === 'Autenticación';
+                            const catColor = isAuth ? '#0F766E' : '#8b5cf6';
+                            const catBg = isAuth ? 'rgba(15, 118, 110, 0.1)' : 'rgba(139, 92, 246, 0.1)';
+
+                            return (
+                              <tr key={log.id_auditoria} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
+                                <td style={{ padding: '16px 20px', fontSize: '13px', color: 'var(--text-main)', fontWeight: '600' }}>
+                                  <div>{fechaFormatted}</div>
+                                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{horaFormatted}</span>
+                                </td>
+                                <td style={{ padding: '16px 20px', fontSize: '13px', color: 'var(--text-main)', fontWeight: '700' }}>
+                                  <span style={{ padding: '4px 8px', borderRadius: '12px', background: 'var(--bg-app)', border: '1px solid var(--border)' }}>
+                                    {log.usuario}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '16px 20px' }}>
+                                  <span style={{ color: catColor, background: catBg, padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', border: `1px solid ${catColor}40` }}>
+                                    {log.categoria}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '16px 20px', fontSize: '13px', color: 'var(--text-main)', fontWeight: '700' }}>
+                                  {log.accion}
+                                </td>
+                                <td style={{ padding: '16px 20px' }}>
+                                  <span style={{ color: resultColor, background: resultBg, padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', border: `1px solid ${resultColor}40` }}>
+                                    {log.resultado}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '16px 20px', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700' }}>
+                                  {log.entidad}
+                                </td>
+                                <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                                  <button 
+                                    onClick={() => setSelectedAuditLog(log)}
+                                    style={{ padding: '6px 12px', fontSize: '11px', fontWeight: '700', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-main)', cursor: 'pointer' }}
+                                  >
+                                    Ver JSON
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {errorMsg ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: '#ef4444' }}>{errorMsg}</div>
-              ) : (
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead>
-                      <tr style={{ background: 'var(--bg-app)', borderBottom: '1px solid #DBE3E0' }}>
-                        <th style={{ padding: '16px 24px', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>USUARIO</th>
-                        <th style={{ padding: '16px 24px', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>CORREO INSTITUCIONAL</th>
-                        <th style={{ padding: '16px 24px', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>ROL ASIGNADO</th>
-                        <th style={{ padding: '16px 24px', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.5px', textAlign: 'right' }}>ACCIONES</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {usuarios.map((u, index) => (
-                        <tr key={u.id_usuario} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
-                          <td style={{ padding: '16px 24px' }}>
-                            <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)' }}>{u.nombre} {u.apellido}</div>
-                          </td>
-                          <td style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>{u.correo}</td>
-                          <td style={{ padding: '16px 24px' }}>
-                            <span style={{
-                              padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px',
-                              background: u.id_rol === 1 ? '#fee2e2' : u.id_rol === 3 ? '#fef3c7' : '#e0e7ff',
-                              color: u.id_rol === 1 ? '#ef4444' : u.id_rol === 3 ? '#d97706' : '#4338ca'
-                            }}>
-                              {u.id_rol === 1 ? 'ADMINISTRADOR' : u.id_rol === 3 ? 'SUPERADMIN' : 'PARTICIPANTE'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                              <button
-                                onClick={() => openEditModal(u)}
-                                style={{ padding: '6px', background: '#e0f2fe', border: 'none', borderRadius: '4px', color: '#0284c7', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                                title="Editar Usuario"
-                              >
-                                <IconEdit />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteUser(u.id_usuario)}
-                                style={{ padding: '6px', background: '#fee2e2', border: 'none', borderRadius: '4px', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                                title="Eliminar Usuario"
-                              >
-                                <IconDelete />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {usuarios.length === 0 && !loadingUsers && (
-                        <tr><td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No se encontraron usuarios</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </div>
           )}
 
