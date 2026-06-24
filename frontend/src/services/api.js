@@ -39,6 +39,7 @@ export const getUsers = () => api.get('/usuarios/')
 export const createUser = (payload) => api.post('/usuarios/', payload)
 export const updateUser = (id, payload) => api.put(`/usuarios/${id}`, payload)
 export const deleteUser = (id) => api.delete(`/usuarios/${id}`)
+export const getAuditoria = (params) => api.get('/auditoria/', { params })
 
 export const updateMe = (payload) => api.put('/usuarios/me', payload)
 

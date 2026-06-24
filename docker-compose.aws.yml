@@ -5,9 +5,9 @@ services:
     image: postgres:15-alpine
     container_name: ms_usuarios_db
     environment:
-      POSTGRES_DB: usuarios_db
-      POSTGRES_USER: user_admin
-      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: db_usuarios
+      POSTGRES_USER: postgres_admin
+      POSTGRES_PASSWORD: postgres123456
     ports:
       - "5432:5432"
     volumes:
@@ -20,7 +20,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://user_admin:password123@db_usuarios:5432/usuarios_db
+      - DATABASE_URL=postgresql://postgres_admin:postgres123456@db_usuarios:5432/db_usuarios
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - GOOGLE_CLIENT_ID=883175682519-tv0t5ndf3185sdimdjd6ro9hack12m7r.apps.googleusercontent.com
       - MAIL_USERNAME=soporte.cloudconnect.unl@gmail.com

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api, { getUsers, createUser, updateUser, deleteUser, register, updateMe } from '../services/api'
+import api, { getUsers, createUser, updateUser, deleteUser, register, updateMe, getAuditoria } from '../services/api'
 import { listarSensores } from '../services/climaService'
 import { listarUbicaciones } from '../services/ubicacionService'
 import { getEventos, getUbicaciones } from '../components/dashboard/events/eventService'
@@ -36,6 +36,14 @@ export default function Dashboard() {
   const [usuarios, setUsuarios] = useState([])
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+
+  // Auditoría State
+  const [auditoriaLogs, setAuditoriaLogs] = useState([])
+  const [loadingAuditoria, setLoadingAuditoria] = useState(false)
+  const [filtroUsuario, setFiltroUsuario] = useState('')
+  const [filtroCategoria, setFiltroCategoria] = useState('')
+  const [filtroEntidad, setFiltroEntidad] = useState('')
+  const [selectedAuditLog, setSelectedAuditLog] = useState(null)
 
   // Notifications State
   const addNotification = (type, title, message) => {
@@ -221,6 +229,30 @@ export default function Dashboard() {
     }
   }
 
+  const fetchAuditoriaLogs = async () => {
+    setLoadingAuditoria(true)
+    try {
+      const params = {}
+      if (filtroUsuario) params.usuario = filtroUsuario
+      if (filtroCategoria) params.categoria = filtroCategoria
+      if (filtroEntidad) params.entidad = filtroEntidad
+      
+      const res = await getAuditoria(params)
+      setAuditoriaLogs(res.data)
+    } catch (err) {
+      console.error('Error al cargar auditorías:', err)
+      addNotification('error', 'ERROR AUDITORÍA', 'No se pudieron sincronizar los logs de auditoría.')
+    } finally {
+      setLoadingAuditoria(false)
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'Auditoria') {
+      fetchAuditoriaLogs()
+    }
+  }, [activeTab, filtroUsuario, filtroCategoria, filtroEntidad])
+
   const handleLogout = () => {
     localStorage.clear()
     window.location.href = '/login?logout=true'
@@ -364,11 +396,13 @@ export default function Dashboard() {
     { id: 'Dashboard', icon: <IconDashboard />, label: 'DASHBOARD' },
     { id: 'Eventos', icon: <IconEvents />, label: 'EVENTOS UNL' },
     { id: 'Ubicacion', icon: <IconMap />, label: 'UBICACIÓN' },
+    { id: 'Auditoria', icon: <IconClock />, label: 'AUDITORÍA LOGS' },
     { id: 'Perfil', icon: <IconUsers />, label: 'MI PERFIL' },
   ] : isSuperAdmin ? [
     { id: 'Usuarios', icon: <IconUsers />, label: 'GESTIÓN DE USUARIOS', badge: usuarios.length },
     { id: 'Sensores', icon: <IconSensors />, label: 'SENSOR IOT', labelRight: 'ESTABLE' },
     { id: 'Ubicacion', icon: <IconMap />, label: 'UBICACIÓN' },
+    { id: 'Auditoria', icon: <IconClock />, label: 'AUDITORÍA LOGS', badge: auditoriaLogs.length },
     { id: 'Configuracion', icon: <IconSettings />, label: 'CONFIGURACIÓN' },
   ] : [
     { id: 'Dashboard', icon: <IconDashboard />, label: 'MI DASHBOARD', badge: 'PIONERO' },
@@ -1101,6 +1135,190 @@ export default function Dashboard() {
             <Ubicacion userRole={user.id_rol} />
           )}
 
+          {/* MÓDULO DE AUDITORÍA */}
+          {activeTab === 'Auditoria' && (isAdmin || isSuperAdmin) && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              
+              {/* Encabezado */}
+              <div style={{ background: 'var(--bg-card)', padding: '32px', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ width: '48px', height: '48px', background: 'rgba(15, 118, 110, 0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F766E' }}>
+                    <IconClock />
+                  </div>
+                  <div>
+                    <h2 style={{ margin: '0 0 4px 0', fontSize: '22px', fontWeight: '800', color: 'var(--text-main)' }}>Auditoría de Eventos en Tiempo Real</h2>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>
+                      Seguimiento de accesos, inicios de sesión y mutaciones de datos auditadas a través de Apache Kafka y guardadas en la base de datos.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contadores / KPIs */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Eventos Auditados</span>
+                  <div style={{ fontSize: '28px', fontWeight: '900', color: '#0F766E', marginTop: '6px' }}>{auditoriaLogs.length}</div>
+                </div>
+                <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Inicios de Sesión</span>
+                  <div style={{ fontSize: '28px', fontWeight: '900', color: '#10b981', marginTop: '6px' }}>
+                    {auditoriaLogs.filter(log => log.accion === 'Inicio de Sesión').length}
+                  </div>
+                </div>
+                <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Registros Nuevos</span>
+                  <div style={{ fontSize: '28px', fontWeight: '900', color: '#3b82f6', marginTop: '6px' }}>
+                    {auditoriaLogs.filter(log => log.accion === 'Registro').length}
+                  </div>
+                </div>
+                <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Fallas / Alertas</span>
+                  <div style={{ fontSize: '28px', fontWeight: '900', color: '#ef4444', marginTop: '6px' }}>
+                    {auditoriaLogs.filter(log => log.resultado.includes('401') || log.resultado.includes('403') || log.resultado.includes('Fallo')).length}
+                  </div>
+                </div>
+              </div>
+
+              {/* Barra de Filtros */}
+              <div style={{ background: 'var(--bg-card)', padding: '20px 24px', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Usuario (Correo)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: usuario@unl.edu.ec" 
+                    value={filtroUsuario}
+                    onChange={e => setFiltroUsuario(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '13px', background: 'var(--bg-app)', color: 'var(--text-main)', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ width: '180px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Categoría</label>
+                  <select 
+                    value={filtroCategoria}
+                    onChange={e => setFiltroCategoria(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '13px', background: 'var(--bg-app)', color: 'var(--text-main)', boxSizing: 'border-box' }}
+                  >
+                    <option value="">Todas</option>
+                    <option value="Autenticación">Autenticación</option>
+                    <option value="Gestión de Usuarios">Gestión de Usuarios</option>
+                  </select>
+                </div>
+                <div style={{ width: '180px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Entidad</label>
+                  <select 
+                    value={filtroEntidad}
+                    onChange={e => setFiltroEntidad(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '13px', background: 'var(--bg-app)', color: 'var(--text-main)', boxSizing: 'border-box' }}
+                  >
+                    <option value="">Todas</option>
+                    <option value="Sesión">Sesión</option>
+                    <option value="Registro">Registro</option>
+                    <option value="Usuario">Usuario</option>
+                  </select>
+                </div>
+                <div style={{ alignSelf: 'flex-end' }}>
+                  <button 
+                    onClick={() => { setFiltroUsuario(''); setFiltroCategoria(''); setFiltroEntidad(''); }} 
+                    style={{ padding: '10px 16px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '13px', fontWeight: '700', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}
+                  >
+                    Limpiar Filtros
+                  </button>
+                </div>
+                <div style={{ alignSelf: 'flex-end', marginLeft: 'auto' }}>
+                  <button 
+                    onClick={fetchAuditoriaLogs} 
+                    disabled={loadingAuditoria}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '6px', border: 'none', fontSize: '13px', fontWeight: '700', background: '#0F766E', color: 'white', cursor: 'pointer', opacity: loadingAuditoria ? 0.7 : 1 }}
+                  >
+                    {loadingAuditoria ? 'Cargando...' : 'Actualizar'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Tabla de Logs */}
+              <div style={{ background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                {loadingAuditoria && auditoriaLogs.length === 0 ? (
+                  <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)', fontWeight: '600' }}>Cargando logs de auditoría...</div>
+                ) : auditoriaLogs.length === 0 ? (
+                  <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)', fontWeight: '600' }}>No se encontraron registros de auditoría que coincidan con los filtros.</div>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ background: 'var(--bg-app)', borderBottom: '1px solid var(--border)' }}>
+                          <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Fecha y Hora</th>
+                          <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Usuario / Actor</th>
+                          <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Categoría</th>
+                          <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Acción</th>
+                          <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Resultado</th>
+                          <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Entidad</th>
+                          <th style={{ padding: '16px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase', textAlign: 'right' }}>Detalle</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {auditoriaLogs.map((log) => {
+                          const dateObj = new Date(log.fecha);
+                          const fechaFormatted = dateObj.toLocaleDateString();
+                          const horaFormatted = dateObj.toLocaleTimeString();
+                          
+                          // Badge para resultado
+                          const isSuccess = log.resultado.includes('Éxito') || log.resultado.startsWith('20');
+                          const isWarning = log.resultado.includes('401') || log.resultado.includes('403');
+                          const resultColor = isSuccess ? '#10b981' : isWarning ? '#f59e0b' : '#ef4444';
+                          const resultBg = isSuccess ? 'rgba(16, 185, 129, 0.1)' : isWarning ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+
+                          // Badge para Categoría
+                          const isAuth = log.categoria === 'Autenticación';
+                          const catColor = isAuth ? '#0F766E' : '#8b5cf6';
+                          const catBg = isAuth ? 'rgba(15, 118, 110, 0.1)' : 'rgba(139, 92, 246, 0.1)';
+
+                          return (
+                            <tr key={log.id_auditoria} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
+                              <td style={{ padding: '16px 20px', fontSize: '13px', color: 'var(--text-main)', fontWeight: '600' }}>
+                                <div>{fechaFormatted}</div>
+                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{horaFormatted}</span>
+                              </td>
+                              <td style={{ padding: '16px 20px', fontSize: '13px', color: 'var(--text-main)', fontWeight: '700' }}>
+                                <span style={{ padding: '4px 8px', borderRadius: '12px', background: 'var(--bg-app)', border: '1px solid var(--border)' }}>
+                                  {log.usuario}
+                                </span>
+                              </td>
+                              <td style={{ padding: '16px 20px' }}>
+                                <span style={{ color: catColor, background: catBg, padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', border: `1px solid ${catColor}40` }}>
+                                  {log.categoria}
+                                </span>
+                              </td>
+                              <td style={{ padding: '16px 20px', fontSize: '13px', color: 'var(--text-main)', fontWeight: '700' }}>
+                                {log.accion}
+                              </td>
+                              <td style={{ padding: '16px 20px' }}>
+                                <span style={{ color: resultColor, background: resultBg, padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', border: `1px solid ${resultColor}40` }}>
+                                  {log.resultado}
+                                </span>
+                              </td>
+                              <td style={{ padding: '16px 20px', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700' }}>
+                                {log.entidad}
+                              </td>
+                              <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                                <button 
+                                  onClick={() => setSelectedAuditLog(log)}
+                                  style={{ padding: '6px 12px', fontSize: '11px', fontWeight: '700', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-main)', cursor: 'pointer' }}
+                                >
+                                  Ver JSON
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* FOOTER */}
           <div style={{ marginTop: '40px', borderTop: '1px solid #DBE3E0', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '1px' }}>
             <div>CONSOLA CENTRALIZADA UNIVERSIDAD NACIONAL DE LOJA / HANDSHAKE 04.</div>
@@ -1179,6 +1397,56 @@ export default function Dashboard() {
                   </button>
                 </div>
               </form>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DETALLES AUDITORÍA */}
+      {selectedAuditLog && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }}>
+          <div style={{ background: 'var(--text-inverse)', width: '100%', maxWidth: '600px', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+            
+            <div style={{ background: 'var(--bg-app)', padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: 'var(--text-main)' }}>
+                Detalles del Evento Kafka / DB #{selectedAuditLog.id_auditoria}
+              </h3>
+              <button onClick={() => setSelectedAuditLog(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: 'var(--text-muted)' }}>&times;</button>
+            </div>
+
+            <div style={{ padding: '24px' }}>
+              <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>FECHA Y HORA</span>
+                  <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>{new Date(selectedAuditLog.fecha).toLocaleString()}</span>
+                </div>
+                <div>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>ACTOR / USUARIO</span>
+                  <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>{selectedAuditLog.usuario}</span>
+                </div>
+                <div>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>ACCIÓN / ENDPOINT</span>
+                  <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>{selectedAuditLog.accion}</span>
+                </div>
+                <div>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>RESULTADO</span>
+                  <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>{selectedAuditLog.resultado}</span>
+                </div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>TRAMA JSON (KAFKA PAYLOAD)</span>
+                <pre style={{ margin: 0, padding: '16px', background: 'var(--bg-app)', border: '1px solid var(--border)', borderRadius: '6px', overflowX: 'auto', fontSize: '12px', color: 'var(--text-main)', fontFamily: 'monospace', lineHeight: '1.5', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                  {JSON.stringify(JSON.parse(selectedAuditLog.detalles || '{}'), null, 2)}
+                </pre>
+              </div>
+            </div>
+
+            <div style={{ padding: '16px 24px', background: 'var(--bg-app)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end' }}>
+              <button onClick={() => setSelectedAuditLog(null)} style={{ padding: '10px 20px', background: '#0F766E', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600', color: 'white', cursor: 'pointer' }}>
+                Cerrar
+              </button>
             </div>
 
           </div>

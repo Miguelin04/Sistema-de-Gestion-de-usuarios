@@ -12,6 +12,7 @@ from app.routers import auth, usuarios
 
 # IMPORTACIÓN CRÍTICA: Modelos correspondientes a este microservicio
 from app.models.usuario import Usuario
+from app.models.auditoria import Auditoria
 
 # IMPORTAMOS EL SCRIPT DE SEMBRADO (Roles y administradores)
 from app.database.init_db import inicializar_datos_maestros
@@ -66,3 +67,6 @@ Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzi
 # Incluimos solo los endpoints de identidad
 app.include_router(auth.router)
 app.include_router(usuarios.router)
+
+from app.routers import auditoria
+app.include_router(auditoria.router)
