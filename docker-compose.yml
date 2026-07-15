@@ -31,7 +31,7 @@ services:
       - MAIL_STARTTLS=True
       - MAIL_SSL_TLS=False
       - JWT_SECRET_KEY=clave_super_secreta_123
-      - FRONTEND_URL=http://3.21.50.248
+      - FRONTEND_URL=http://3.21.50.248.nip.io
     depends_on:
       - db
     restart: always
@@ -40,7 +40,7 @@ services:
     build:
       context: ./frontend
       args:
-        - VITE_API_BASE=http://3.21.50.248:8000/api
+        - VITE_API_BASE=http://3.21.50.248.nip.io:8000/api
         - VITE_GOOGLE_CLIENT_ID=883175682519-tv0t5ndf3185sdimdjd6ro9hack12m7r.apps.googleusercontent.com
     container_name: ms_usuarios_frontend
     ports:
