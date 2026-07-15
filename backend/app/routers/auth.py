@@ -7,14 +7,14 @@
 # 30/05/2026 v0.3 - David Guamán: Adición de endpoints para recuperación de contraseña, incluyendo generación de tokens de recuperación y validación de los mismos al restablecer la clave.
 # 03/06/2026 v0.4 - David Guamán: Implementación de verificación de correo electrónico y validación de reCAPTCHA para prevenir cuentas robot.
 
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+import asyncio
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import Any
 import httpx
 import re
 from app.database.session import get_db
-# CORRECCIÓN: Se agrega UsuarioGoogleData a la lista de esquemas importados
 from app.schemas.usuario import EmailRequest, UsuarioCreate, UsuarioResponse, Token, UsuarioRegistroHibrido, TokenGoogleLogin, ResetPasswordRequest, UsuarioGoogleData, LoginRequest
 from app.crud import crud_usuario
 from app.core import security
@@ -129,7 +129,6 @@ async def _verificar_recaptcha(token: str):
 @router.post("/registro", response_model=Any, status_code=status.HTTP_201_CREATED)
 async def registrar_usuario(
     usuario_in: UsuarioCreate, 
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ) -> Any:
     """
@@ -164,7 +163,8 @@ async def registrar_usuario(
         user_data['fecha_nacimiento'] = user_data['fecha_nacimiento'].isoformat()
         
     token_verificacion = crear_token_verificacion_datos(user_data)
-    background_tasks.add_task(enviar_correo_verificacion, usuario_in.correo, token_verificacion)
+    # Reemplazo de BackgroundTasks por asyncio.create_task
+    asyncio.create_task(enviar_correo_verificacion(usuario_in.correo, token_verificacion))
     
     return {"mensaje": "Revisa tu correo electrónico para completar la creación de tu cuenta. El enlace expira en 24 horas."}
 
@@ -208,7 +208,6 @@ def verificar_cuenta(token: str, db: Session = Depends(get_db)):
 @router.post("/reenviar-verificacion")
 async def reenviar_verificacion(
     request: EmailRequest,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """
@@ -219,7 +218,7 @@ async def reenviar_verificacion(
     # Truco de seguridad: respondemos igual aunque no exista
     if usuario and not usuario.verificado:
         token_verificacion = crear_token_verificacion(request.email)
-        background_tasks.add_task(enviar_correo_verificacion, request.email, token_verificacion)
+        asyncio.create_task(enviar_correo_verificacion(request.email, token_verificacion))
     
     return {"mensaje": "Si el correo está registrado y no verificado, hemos enviado un nuevo enlace de verificación."}
 
@@ -381,7 +380,7 @@ def iniciar_sesion_google(credenciales: TokenGoogleLogin, db: Session = Depends(
 # ============ ENDPOINTS DE RECUPERACIÓN ============
 
 @router.post("/solicitar-recuperacion")
-async def solicitar_recuperacion(request: EmailRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+async def solicitar_recuperacion(request: EmailRequest, db: Session = Depends(get_db)):
     '''Endpoint para solicitar recuperación de contraseña. Envia un correo con un enlace que contiene un token JWT de vida corta.'''
     # 1. Buscamos si el correo existe (Ajusta la llamada a tu CRUD si tiene otro nombre)
     usuario = crud_usuario.obtener_usuario_por_correo(db, correo=request.email)
@@ -393,7 +392,7 @@ async def solicitar_recuperacion(request: EmailRequest, background_tasks: Backgr
         token = crear_token_recuperacion(email=request.email)
         
         # 3. Le pasamos la tarea al cartero en SEGUNDO PLANO
-        background_tasks.add_task(enviar_correo_recuperacion, request.email, token)
+        asyncio.create_task(enviar_correo_recuperacion(request.email, token))
 
     return {"mensaje": "Si el correo está registrado, hemos enviado un enlace de recuperación a tu bandeja de entrada."}
 
