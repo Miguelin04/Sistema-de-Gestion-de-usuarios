@@ -55,16 +55,16 @@ class AuditMiddleware(BaseHTTPMiddleware):
         if not is_audit_target:
             return await call_next(request)
 
-        # 2. Interceptar el cuerpo del request antes de procesar para obtener el correo si es anónimo
+        # 2. (Desactivado temporalmente) Interceptar el cuerpo del request rompía el stream de ASGI con BackgroundTasks
         user_email = "Anónimo"
-        if is_login or is_register:
-            try:
-                body_bytes = await get_body(request)
-                if body_bytes:
-                    body_data = json.loads(body_bytes.decode('utf-8'))
-                    user_email = body_data.get("correo") or body_data.get("email") or "Anónimo"
-            except Exception:
-                pass
+        # if is_login or is_register:
+        #     try:
+        #         body_bytes = await get_body(request)
+        #         if body_bytes:
+        #             body_data = json.loads(body_bytes.decode('utf-8'))
+        #             user_email = body_data.get("correo") or body_data.get("email") or "Anónimo"
+        #     except Exception:
+        #         pass
 
         # 3. Procesar la petición
         start_time = time.time()
