@@ -24,7 +24,12 @@ from google.auth.transport import requests as google_requests
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def setup_cors(app: FastAPI) -> None:
-    origins = settings.BACKEND_CORS_ORIGINS
+    origins = [
+        "http://3.21.50.248",      # Tu IP pública de AWS
+        "http://3.21.50.248:80",   # Tu frontend en el puerto 80
+        "http://localhost",
+        "http://localhost:3000",
+    ]
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
