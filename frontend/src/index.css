@@ -68,6 +68,8 @@ button {
   /* Contenedores Flex principales */
   #root > div {
     flex-direction: column !important;
+    height: auto !important;
+    min-height: 100vh !important;
   }
 
   /* Barra lateral (Sidebar) */
@@ -78,6 +80,7 @@ button {
     border-right: none !important;
     border-bottom: 1px solid var(--border) !important;
     padding-bottom: 12px !important;
+    z-index: 10 !important;
   }
 
   /* Menú lateral convertido a menú horizontal o cuadrícula */
@@ -87,6 +90,7 @@ button {
     justify-content: center !important;
     padding: 8px !important;
     gap: 8px !important;
+    overflow-x: visible !important;
   }
   
   aside nav a, aside nav button {
@@ -106,25 +110,32 @@ button {
   header {
     flex-direction: column !important;
     height: auto !important;
-    padding: 20px !important;
-    gap: 16px !important;
+    padding: 16px !important;
+    gap: 12px !important;
     align-items: center !important;
     text-align: center !important;
   }
 
-  /* Contenido Principal (Dashboard y Home) */
+  /* Eliminar scroll interno en móviles para que toda la página haga scroll natural */
   main {
-    padding: 16px !important;
+    overflow: visible !important;
+    height: auto !important;
+    padding: 0 !important;
   }
-  main > div {
+  
+  main > div[style*="overflow-y"] {
+    overflow-y: visible !important;
+    height: auto !important;
     padding: 16px !important;
   }
 
-  /* Tablas responsivas */
+  /* Tablas responsivas: envolverlas para que tengan su propio scroll horizontal si son muy anchas */
   table {
     display: block !important;
+    width: 100% !important;
     overflow-x: auto !important;
     white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   /* Ocultar paneles decorativos en auth */
@@ -144,5 +155,11 @@ button {
   .input-row {
     flex-direction: column !important;
     gap: 16px !important;
+  }
+  
+  /* Ajuste para tarjetas muy anchas */
+  div[style*="width: 100%"], div[style*="max-width"] {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 }
