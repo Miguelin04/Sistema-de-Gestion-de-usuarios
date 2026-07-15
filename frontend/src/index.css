@@ -60,3 +60,89 @@ button {
   border-radius: 4px;
   cursor: pointer;
 }
+
+/* ==================================================
+   DISEÑO RESPONSIVO GLOBAL (Móviles y Tablets)
+   ================================================== */
+@media (max-width: 900px) {
+  /* Contenedores Flex principales */
+  #root > div {
+    flex-direction: column !important;
+  }
+
+  /* Barra lateral (Sidebar) */
+  aside {
+    width: 100% !important;
+    height: auto !important;
+    position: relative !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding-bottom: 12px !important;
+  }
+
+  /* Menú lateral convertido a menú horizontal o cuadrícula */
+  aside nav {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    padding: 8px !important;
+    gap: 8px !important;
+  }
+  
+  aside nav a, aside nav button {
+    width: auto !important;
+    padding: 8px 12px !important;
+    margin-bottom: 0 !important;
+    font-size: 11px !important;
+  }
+
+  /* Grillas de 4 o 2 columnas convertidas a 1 columna */
+  div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Headers */
+  header {
+    flex-direction: column !important;
+    height: auto !important;
+    padding: 20px !important;
+    gap: 16px !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  /* Contenido Principal (Dashboard y Home) */
+  main {
+    padding: 16px !important;
+  }
+  main > div {
+    padding: 16px !important;
+  }
+
+  /* Tablas responsivas */
+  table {
+    display: block !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+  }
+
+  /* Ocultar paneles decorativos en auth */
+  .auth-left {
+    padding: 30px 20px !important;
+    min-height: auto !important;
+  }
+  
+  .auth-right {
+    padding: 30px 20px !important;
+  }
+
+  .auth-container {
+    flex-direction: column !important;
+  }
+
+  .input-row {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+}
