@@ -25,8 +25,10 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def setup_cors(app: FastAPI) -> None:
     origins = [
-        "http://3.21.50.248",      # Tu IP pública de AWS
-        "http://3.21.50.248:80",   # Tu frontend en el puerto 80
+        "http://3.21.50.248",
+        "http://3.21.50.248:80",
+        "http://3.21.50.248.nip.io",
+        "http://3.21.50.248.nip.io:80",
         "http://localhost",
         "http://localhost:3000",
     ]
