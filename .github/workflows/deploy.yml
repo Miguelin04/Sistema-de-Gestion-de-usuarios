@@ -1,0 +1,36 @@
+name: CI/CD Pipeline AWS
+
+on:
+  push:
+    branches:
+      - main # Se ejecuta automáticamente cuando haces "git push" a la rama main
+
+jobs:
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v3
+
+      - name: Desplegar en servidor remoto vía SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ${{ secrets.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            # Moverse a la carpeta del proyecto
+            cd /home/ubuntu/Sistema-de-Gestion-de-usuarios || exit
+            
+            # Traer los últimos cambios de GitHub
+            git pull origin main
+            
+            # Reconstruir y reiniciar los contenedores con Docker Compose
+            docker-compose down
+            docker-compose build --no-cache
+            docker-compose up -d
+            
+            # Limpiar imágenes colgadas para no llenar el disco
+            docker image prune -f
